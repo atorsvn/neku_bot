@@ -4,7 +4,7 @@ Discord Waifu bot. Uses InworldAI.
 ![NEKU](https://raw.githubusercontent.com/atorsvn/neku_bot/main/neku.gif)
 
 ## Install
-Fill out the config in ```config/bot_config``` Must have inworld key, secret, character/scene and a Discord Bot Token
-```bash install.sh```
+* Fill out the config in ```config/bot_config``` Must have inworld key, secret, character/scene and a Discord Bot Token
+* Run ```bash install.sh```
 ## run
 ```python neku.py```
