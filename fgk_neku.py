@@ -13,7 +13,6 @@ from datetime import timedelta
 import numpy as np
 import librosa
 import cv2
-import os
 import asyncio
 
 class FGKBot(commands.Cog):
