@@ -8,4 +8,4 @@ Discord Waifu bot. Uses InworldAI.
 * Run ```bash install.sh```
 ## Usage
 * Run ```python neku.py```
-* command in Discord ```!neku <your text here>```
+* Command in Discord ```!neku <your text here>```
