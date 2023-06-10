@@ -8,15 +8,13 @@ import logging
 
 from fgk_neku import FGKBot
 
-# Set up logging for error handling
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+def setup_logging():
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-future_gadget_kr3w = FGKBot(bot)
+def setup_bot():
+    intents = discord.Intents.default()
+    intents.message_content = True
+    return commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
@@ -42,9 +40,18 @@ async def neku(ctx, *, query=""):
     except Exception as e:
         logging.error(f"Error in neku command: {e}")
 
-try:
-    loop = asyncio.get_event_loop()
-    loop.create_task(bot.start(future_gadget_kr3w.BOT_CONFIG['DISCORD-TOKEN']))
-    loop.run_forever()
-except Exception as e:
-    logging.error(f"Error running bot: {e}")
+def main():
+    try:
+        setup_logging()
+        bot = setup_bot()
+
+        future_gadget_kr3w = FGKBot(bot)
+        
+        loop = asyncio.get_event_loop()
+        loop.create_task(bot.start(future_gadget_kr3w.BOT_CONFIG['DISCORD-TOKEN']))
+        loop.run_forever()
+    except Exception as e:
+        logging.error(f"Error running bot: {e}")
+
+if __name__ == "__main__":
+    main()
