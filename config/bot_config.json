@@ -1,6 +1,7 @@
 {
     "DISCORD-TOKEN" : "",
-    "INWORLD-KEY" : "",
-    "INWORLD-SECRET" : "",
-    "INWORLD-SCENE" : ""
+    "bot_name": "",
+    "bot_prompt": "",
+    "bot_personality": "",
+    "bot_situation": ""
 }

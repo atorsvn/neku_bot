@@ -1,66 +1,72 @@
-# Import necessary libraries
-import discord
-from discord.ext import commands
-import re
 import asyncio
-import random
-import os
 import logging
 
-# Import the FGKBot module
-from fgk_neku import FGKBot
+import discord
+from discord.ext import commands
 
-# This function sets up the logging system with a specific format and error level
+from nekubot import FGKBot
+
+
 def setup_logging():
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    """Configure basic logging for the bot."""
+    logging.basicConfig(
+        level=logging.ERROR,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
-# This function creates a new Bot instance with default intents and a specific command prefix
-def setup_bot():
+
+async def run_avatar_waifu(ctx, query: str, fgk_bot: FGKBot) -> None:
+    """Execute the avatar_waifu command and log any errors."""
+    try:
+        await fgk_bot.avatar_waifu(
+            ctx,
+            query,
+            ctx.message.author.name,
+            ctx.message.author.id,
+            ctx.message.channel.id,
+        )
+    except Exception as exc:  # pragma: no cover - defensive logging
+        logging.error("Error in neku command: %s", exc)
+
+
+def create_bot() -> commands.Bot:
+    """Create the Discord bot with the required intents."""
     intents = discord.Intents.default()
     intents.message_content = True
-    return commands.Bot(command_prefix='!', intents=intents)
+    return commands.Bot(command_prefix="!", intents=intents)
 
-# This event is triggered when the bot is ready. It logs the bot username.
-@bot.event
-async def on_ready():
-    try:
-        print('We have logged in as {0.user}'.format(bot))
-    except Exception as e:
-        logging.error(f"Error in on_ready: {e}")
 
-# This function wraps the avatar_waifu method from the FGKBot class
-async def run_avatar_waifu(ctx, query):
-    try:
-        await future_gadget_kr3w.avatar_waifu(ctx, query, ctx.message.author.name, ctx.message.author.id, ctx.message.channel.id)
-    except Exception as e:
-        logging.error(f"Error in neku command: {e}")
+def configure_bot(bot: commands.Bot, fgk_bot: FGKBot) -> None:
+    """Attach events and commands to the bot instance."""
 
-# This command wraps the above function with typing status and error handling
-@bot.command(name='neku')
-async def neku(ctx, *, query=""):
-    try:
-        if ctx.message.author == bot.user:
-            return
+    @bot.event
+    async def on_ready() -> None:  # pragma: no cover - simple logging
+        try:
+            print(f"We have logged in as {bot.user}")
+        except Exception as exc:
+            logging.error("Error in on_ready: %s", exc)
 
-        async with ctx.typing():
-            asyncio.create_task(run_avatar_waifu(ctx, query))
-    except Exception as e:
-        logging.error(f"Error in neku command: {e}")
+    @bot.command(name="neku")
+    async def neku(ctx: commands.Context, *, query: str = "") -> None:
+        try:
+            if ctx.message.author == bot.user:
+                return
+            async with ctx.typing():
+                asyncio.create_task(run_avatar_waifu(ctx, query, fgk_bot))
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logging.error("Error in neku command: %s", exc)
 
-# This is the main function that initializes logging, the bot, and the event loop
-def main():
-    try:
-        setup_logging()
-        bot = setup_bot()
 
-        future_gadget_kr3w = FGKBot(bot)
-        
-        loop = asyncio.get_event_loop()
-        loop.create_task(bot.start(future_gadget_kr3w.BOT_CONFIG['DISCORD-TOKEN']))
-        loop.run_forever()
-    except Exception as e:
-        logging.error(f"Error running bot: {e}")
+async def main() -> None:
+    """Entry point for running the bot."""
+    setup_logging()
+    bot = create_bot()
+    fgk_bot = FGKBot(bot)
+    configure_bot(bot, fgk_bot)
 
-# This makes sure the main function is called when the script is run directly
-if __name__ == "__main__":
-    main()
+    await bot.start(fgk_bot.BOT_CONFIG["DISCORD-TOKEN"])
+
+
+if __name__ == "__main__":  # pragma: no cover - script entry point
+    asyncio.run(main())
