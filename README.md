@@ -29,3 +29,14 @@ The bot token and persona are read from `config/bot_config.json`.
 ## Testing
 
 Run `pytest -q` to execute the test suite.
+
+## Development
+
+The bot code is organized as a Python package under `nekubot/`:
+
+* `fgk_bot.py` contains the Discord cog.
+* `outworld.py` orchestrates text generation and audio synthesis.
+* `context.py` handles SQLite-backed conversation history.
+* `tts.py` provides a thin wrapper around the Kokoro text-to-speech pipeline.
+
+This modular layout makes it easy to replace or extend individual components.

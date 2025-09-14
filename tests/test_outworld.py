@@ -13,6 +13,7 @@ def load_outworld_with_stubs():
     fake_nltk = types.ModuleType("nltk")
     fake_nltk.download = lambda *a, **k: None
     fake_nltk.sent_tokenize = lambda text: [text]
+    fake_nltk.data = types.SimpleNamespace(find=lambda *a, **k: None)
     sys.modules.setdefault("nltk", fake_nltk)
 
     fake_kokoro = types.ModuleType("kokoro")
@@ -40,8 +41,13 @@ def load_outworld_with_stubs():
     fake_sf.write = lambda *a, **k: None
     sys.modules.setdefault("soundfile", fake_sf)
 
+    # Register a lightweight package placeholder so relative imports succeed
+    package = types.ModuleType("nekubot")
+    package.__path__ = [str(Path(__file__).resolve().parent.parent / "nekubot")]
+    sys.modules.setdefault("nekubot", package)
+
     module_path = Path(__file__).resolve().parent.parent / "nekubot" / "outworld.py"
-    spec = importlib.util.spec_from_file_location("outworld", module_path)
+    spec = importlib.util.spec_from_file_location("nekubot.outworld", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)

@@ -1,18 +1,10 @@
-import base64
-import io
 import json
 import os
-import sqlite3
 
-import soundfile as sf
-import nltk
-from kokoro import KPipeline
 from ollama import chat, ChatResponse
 from transformers import pipeline
-
-nltk.download('punkt')
-
-MAX_CONTEXT_HISTORY = 8
+from nekubot.context import ContextStore
+from nekubot.tts import KokoroTTS
 
 
 class OutworldGenerator:
@@ -29,9 +21,7 @@ class OutworldGenerator:
         db_path: str = "context_history.db",
     ) -> None:
         self.model = model
-        self.pipeline = KPipeline(lang_code=lang_code)
-        self.voice = voice
-        self.speed = speed
+        self.tts = KokoroTTS(lang_code=lang_code, voice=voice, speed=speed)
 
         if config is None:
             if not os.path.exists(config_path):
@@ -42,24 +32,7 @@ class OutworldGenerator:
                 config = json.load(f)
         self.config = config
 
-        db_dir = os.path.dirname(db_path)
-        if db_path != ":memory:" and db_dir:
-            os.makedirs(db_dir, exist_ok=True)
-
-        self.conn = sqlite3.connect(db_path, check_same_thread=False)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS context_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                role TEXT NOT NULL,
-                content TEXT NOT NULL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
-        self.conn.commit()
+        self.context = ContextStore(db_path)
 
         self.emotion_classifier = pipeline(
             "text-classification",
@@ -68,22 +41,10 @@ class OutworldGenerator:
         )
 
     def save_message(self, user_id: str, role: str, content: str) -> None:
-        self.cursor.execute(
-            "INSERT INTO context_history (user_id, role, content) VALUES (?, ?, ?)",
-            (user_id, role, content),
-        )
-        self.conn.commit()
+        self.context.save_message(user_id, role, content)
 
     def get_context(self, user_id: str):
-        self.cursor.execute(
-            "SELECT role, content FROM context_history WHERE user_id = ? ORDER BY timestamp ASC",
-            (user_id,),
-        )
-        rows = self.cursor.fetchall()
-        context = [{"role": row[0], "content": row[1]} for row in rows]
-        if len(context) > MAX_CONTEXT_HISTORY:
-            context = context[-MAX_CONTEXT_HISTORY:]
-        return context
+        return self.context.get_context(user_id)
 
     def chat_ollama(self, user_id: str, user_prompt: str) -> str:
         system_prompt = (
@@ -106,33 +67,7 @@ class OutworldGenerator:
         return assistant_response
 
     def generate_audio(self, text: str):
-        sentences = nltk.sent_tokenize(text)
-        audio_data_list = []
-        segment_index = 0
-
-        for sentence in sentences:
-            generator = self.pipeline(
-                sentence,
-                voice=self.voice,
-                speed=self.speed,
-                split_pattern=None,
-            )
-
-            for _, (gs, ps, audio) in enumerate(generator):
-                with io.BytesIO() as buffer:
-                    sf.write(buffer, audio, 24000, format="WAV")
-                    base64_audio = base64.b64encode(buffer.getvalue()).decode("utf-8")
-                audio_data_list.append(
-                    {
-                        "index": segment_index,
-                        "text": gs,
-                        "phonemes": ps,
-                        "audio_base64": base64_audio,
-                    }
-                )
-                segment_index += 1
-
-        return audio_data_list
+        return self.tts.text_to_audio(text)
 
     def run(self, user_id: str, user_prompt: str):
         response_text = self.chat_ollama(user_id, user_prompt)
