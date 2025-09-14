@@ -7,7 +7,8 @@ Discord Waifu bot powered by local models for text generation, emotion analysis,
 * Populate `config/bot_config.json` with your Discord bot token and desired persona information.
 * Install dependencies with `pip install -r requirements.txt`.
 ## Usage
-* Run `python neku.py` to start the bot.
+* Run `python neku.py` to start the bot. The entry script configures logging and
+  launches the Discord client using `asyncio.run`.
 * In Discord use `!neku <your text here>` to chat with the bot.
 
 ## Docker

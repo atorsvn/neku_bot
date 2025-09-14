@@ -24,6 +24,7 @@ class OutworldGenerator:
         lang_code: str = "a",
         voice: str = "af_heart",
         speed: int = 1,
+        config: dict | None = None,
         config_path: str = "bot_config.json",
         db_path: str = "context_history.db",
     ) -> None:
@@ -32,10 +33,14 @@ class OutworldGenerator:
         self.voice = voice
         self.speed = speed
 
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Configuration file {config_path} not found.")
-        with open(config_path, "r", encoding="utf-8") as f:
-            self.config = json.load(f)
+        if config is None:
+            if not os.path.exists(config_path):
+                raise FileNotFoundError(
+                    f"Configuration file {config_path} not found."
+                )
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+        self.config = config
 
         db_dir = os.path.dirname(db_path)
         if db_path != ":memory:" and db_dir:

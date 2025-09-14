@@ -65,7 +65,7 @@ async def main() -> None:
     fgk_bot = FGKBot(bot)
     configure_bot(bot, fgk_bot)
 
-    await bot.start(fgk_bot.BOT_CONFIG["DISCORD-TOKEN"])
+    await bot.start(fgk_bot.config["DISCORD-TOKEN"])
 
 
 if __name__ == "__main__":  # pragma: no cover - script entry point
