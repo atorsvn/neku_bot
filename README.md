@@ -18,8 +18,8 @@ An optional Docker image is provided for running the bot in isolation.
 
 1. Build the image:
    ```bash
-   docker build -t neku-bot .
-````
+   docker build -t neku-bot 
+    ```
 
 2.  Run the container, mounting the configuration and database directories:
     ```bash
