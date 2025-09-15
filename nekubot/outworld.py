@@ -4,13 +4,16 @@ import json
 import os
 import sqlite3
 
-import soundfile as sf
 import nltk
+import soundfile as sf
 from kokoro import KPipeline
 from ollama import chat, ChatResponse
 from transformers import pipeline
 
-nltk.download('punkt')
+from nekubot.context import ContextStore
+from nekubot.tts import KokoroTTS
+
+nltk.download("punkt")
 
 MAX_CONTEXT_HISTORY = 8
 
@@ -24,19 +27,26 @@ class OutworldGenerator:
         lang_code: str = "a",
         voice: str = "af_heart",
         speed: int = 1,
+        config: dict | None = None,
         config_path: str = "bot_config.json",
         db_path: str = "context_history.db",
     ) -> None:
         self.model = model
+        self.tts = KokoroTTS(lang_code=lang_code, voice=voice, speed=speed)
         self.pipeline = KPipeline(lang_code=lang_code)
         self.voice = voice
         self.speed = speed
 
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Configuration file {config_path} not found.")
-        with open(config_path, "r", encoding="utf-8") as f:
-            self.config = json.load(f)
+        if config is None:
+            if not os.path.exists(config_path):
+                raise FileNotFoundError(
+                    f"Configuration file {config_path} not found."
+                )
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+        self.config = config
 
+        self.context = ContextStore(db_path)
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
@@ -59,6 +69,7 @@ class OutworldGenerator:
         )
 
     def save_message(self, user_id: str, role: str, content: str) -> None:
+        self.context.save_message(user_id, role, content)
         self.cursor.execute(
             "INSERT INTO context_history (user_id, role, content) VALUES (?, ?, ?)",
             (user_id, role, content),
@@ -74,7 +85,7 @@ class OutworldGenerator:
         context = [{"role": row[0], "content": row[1]} for row in rows]
         if len(context) > MAX_CONTEXT_HISTORY:
             context = context[-MAX_CONTEXT_HISTORY:]
-        return context
+        return self.context.get_context(user_id)
 
     def chat_ollama(self, user_id: str, user_prompt: str) -> str:
         system_prompt = (
@@ -93,46 +104,4 @@ class OutworldGenerator:
 
         response: ChatResponse = chat(model=self.model, messages=messages)
         assistant_response = response.message.content
-        self.save_message(user_id, "assistant", assistant_response)
-        return assistant_response
-
-    def generate_audio(self, text: str):
-        sentences = nltk.sent_tokenize(text)
-        audio_data_list = []
-        segment_index = 0
-
-        for sentence in sentences:
-            generator = self.pipeline(
-                sentence,
-                voice=self.voice,
-                speed=self.speed,
-                split_pattern=None,
-            )
-
-            for _, (gs, ps, audio) in enumerate(generator):
-                with io.BytesIO() as buffer:
-                    sf.write(buffer, audio, 24000, format="WAV")
-                    base64_audio = base64.b64encode(buffer.getvalue()).decode("utf-8")
-                audio_data_list.append(
-                    {
-                        "index": segment_index,
-                        "text": gs,
-                        "phonemes": ps,
-                        "audio_base64": base64_audio,
-                    }
-                )
-                segment_index += 1
-
-        return audio_data_list
-
-    def run(self, user_id: str, user_prompt: str):
-        response_text = self.chat_ollama(user_id, user_prompt)
-
-        all_predictions = self.emotion_classifier(
-            response_text, truncation=True, max_length=512
-        )
-        top_emotion = max(all_predictions[0], key=lambda x: x["score"])
-
-        audio_data = self.generate_audio(response_text)
-
-        return {"emotion": top_emotion, "audio_data": audio_data}
+        self.save_

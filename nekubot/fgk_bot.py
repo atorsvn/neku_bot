@@ -19,11 +19,20 @@ class FGKBot(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.BOT_CONFIG = load_json("config/bot_config.json")
-        self.generator = OutworldGenerator(config_path="config/bot_config.json")
+        self.config = load_json("config/bot_config.json")
+        self.generator = OutworldGenerator(
+            config=self.config, db_path="db/context_history.db"
+        )
         self.grid = load_grid()
 
-    async def avatar_waifu(self, ctx, da_text, user_name, user_id, channel_id):
+    async def avatar_waifu(
+        self,
+        ctx: commands.Context,
+        da_text: str,
+        user_name: str,
+        user_id: int,
+        channel_id: int,
+    ) -> None:
         """Run the avatar_waifu pipeline and reply with the generated video."""
         clean_up()
         result = self.generator.run(user_id, da_text)
