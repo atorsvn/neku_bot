@@ -1,0 +1,5 @@
+node_modules/
+crockpot/
+__pycache__/
+*.pyc
+.env
