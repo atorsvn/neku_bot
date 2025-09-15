@@ -1,3 +1,4 @@
+
 # neku_bot
 Discord Waifu bot powered by local models for text generation, emotion analysis, and text-to-speech.
 
@@ -18,11 +19,12 @@ An optional Docker image is provided for running the bot in isolation.
 1. Build the image:
    ```bash
    docker build -t neku-bot .
-   ```
-2. Run the container, mounting the configuration and database directories:
-   ```bash
-   docker run --rm -v $(pwd)/config:/app/config -v $(pwd)/db:/app/db neku-bot
-   ```
+````
+
+2.  Run the container, mounting the configuration and database directories:
+    ```bash
+    docker run --rm -v $(pwd)/config:/app/config -v $(pwd)/db:/app/db neku-bot
+    ```
 
 The bot token and persona are read from `config/bot_config.json`.
 
@@ -34,9 +36,10 @@ Run `pytest -q` to execute the test suite.
 
 The bot code is organized as a Python package under `nekubot/`:
 
-* `fgk_bot.py` contains the Discord cog.
-* `outworld.py` orchestrates text generation and audio synthesis.
-* `context.py` handles SQLite-backed conversation history.
-* `tts.py` provides a thin wrapper around the Kokoro text-to-speech pipeline.
+  * `fgk_bot.py` contains the Discord cog.
+  * `outworld.py` orchestrates text generation and audio synthesis.
+  * `context.py` handles SQLite-backed conversation history.
+  * `tts.py` provides a thin wrapper around the Kokoro text-to-speech pipeline.
 
 This modular layout makes it easy to replace or extend individual components.
+
