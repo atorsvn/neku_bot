@@ -44,8 +44,8 @@ class FGKBot(commands.Cog):
         await do_tts(audio_objects)
         frame_sequence = await audio_analysis("crockpot/merged_sox.mp3")
         await create_grid_video(frame_sequence, self.grid)
-        await add_vid_subs("crockpot/output_with_audio.mp4", "crockpot/spongebob.mp4")
-        await ctx.reply(file=discord.File(r"crockpot/spongebob.mp4"))
+        await add_vid_subs("crockpot/output_with_audio.mp4", "crockpot/neku.mp4")
+        await ctx.reply(file=discord.File(r"crockpot/neku.mp4"))
 
 
 def setup(bot: commands.Bot) -> None:
