@@ -1,6 +1,8 @@
+"""SQLite-backed conversation history storage for the bot."""
+
 import os
 import sqlite3
-from typing import List, Dict
+from typing import Dict, List
 
 MAX_CONTEXT_HISTORY = 8
 

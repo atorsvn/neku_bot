@@ -1,8 +1,10 @@
+"""Utilities for converting generated text to speech audio."""
+
 import base64
 import io
 
-import soundfile as sf
 import nltk
+import soundfile as sf
 from kokoro import KPipeline
 
 
