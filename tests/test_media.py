@@ -11,6 +11,9 @@ import types
 
 def load_media_module():
     sys.modules["cv2"] = types.ModuleType("cv2")
+    fake_librosa = types.ModuleType("librosa")
+    fake_librosa.load = lambda filepath: (np.zeros(160), 16000)
+    sys.modules["librosa"] = fake_librosa
     path = Path(__file__).resolve().parent.parent / "nekubot" / "media.py"
     spec = importlib.util.spec_from_file_location("media", path)
     module = importlib.util.module_from_spec(spec)

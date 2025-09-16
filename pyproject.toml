@@ -58,6 +58,9 @@ dependencies = [
     "yarl==1.9.2",
 ]
 
+[project.scripts]
+nekubot-generate-media = "nekubot.generate_media:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 
